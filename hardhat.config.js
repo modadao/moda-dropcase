@@ -21,20 +21,17 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.6.12",
   networks: {
-    kovan: {
-      url: `${process.env.MORALIS_RPC_URL}/eth/kovan`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-    },
-    ropsten: {
-      url: `${process.env.MORALIS_RPC_URL}/eth/ropsten`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-    },
     mumbai: {
-      url: `${process.env.MORALIS_RPC_URL}/polygon/mumbai`,
+      url: process.env.RPC_URL_MUMBAI,
       accounts: [
         process.env.DEPLOYER_PRIVATE_KEY,
         process.env.USER_PRIVATE_KEY,
       ],
+      timeout: 60000,
+    },
+    matic: {
+      url: process.env.RPC_URL_MATIC,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       timeout: 60000,
     },
     hardhat: {

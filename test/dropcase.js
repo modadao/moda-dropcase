@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
-const nftAbi = require("../abis/nft.json");
+const erc721ABI = require("../abis/erc721NFT.json");
+const erc1155ABI = require("../abis/erc1155NFT.json");
 const { callAndReturn } = require("../helpers/test")(network);
 
 // Charged Particles imports
@@ -22,10 +23,9 @@ describe("Dropcase", async () => {
   const chargedSettingsMainnetAddress =
     chargedParticlesMainnetAddress.chargedSettings.address;
   const chargedParticlesContractMainnetAddress =
-    chargedParticlesMainnetAddress.chargedParticl;
+    chargedParticlesMainnetAddress.chargedParticles.address;
   beforeEach(async () => {
-    // runs once before the first test in this es.address;
-    block;
+    // runs once before the first test in this block
     ChargedParticlesContract = new ethers.Contract(
       chargedParticlesContractMainnetAddress,
       ChargedParticlesAbi,
@@ -38,7 +38,7 @@ describe("Dropcase", async () => {
     );
 
     // Deploy custom NFT
-    const [addr1, addr2] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await ethers.getSigners();
     this.addr1 = addr1;
     this.addr2 = addr2;
     const CustomNFT = await ethers.getContractFactory("DropCase");
@@ -46,30 +46,49 @@ describe("Dropcase", async () => {
     const deployed = await customNFT.deployed();
     deploymentAddress = deployed.address;
 
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [process.env.DEPLOYER_ADDRESS],
+    });
+
     // Mint 2 dropcases
     dropCaseTokenId1 = new ethers.BigNumber.from(
       await callAndReturn({
         contractInstance: customNFT,
         contractMethod: "mintNft",
-        contractCaller: addr1,
-        contractParams: [addr1.address, "a"],
+        contractCaller: owner,
+        contractParams: [owner.address, "a"],
       })
     ).toNumber();
+    console.log(dropCaseTokenId1);
+
+    await callAndReturn({
+      contractInstance: customNFT,
+      contractMethod: "transferFrom",
+      contractCaller: owner,
+      contractParams: [owner.address, addr1.address, dropCaseTokenId1],
+    });
+
     dropCaseTokenId2 = await callAndReturn({
       contractInstance: customNFT,
       contractMethod: "mintNft",
-      contractCaller: addr2,
-      contractParams: [addr2.address, "a"],
+      contractCaller: owner,
+      contractParams: [owner.address, "a"],
+    });
+
+    await callAndReturn({
+      contractInstance: customNFT,
+      contractMethod: "transferFrom",
+      contractCaller: owner,
+      contractParams: [owner.address, addr2.address, dropCaseTokenId2],
     });
 
     console.log("---Minted DropCase TokenId: ", dropCaseTokenId1);
 
-    await customNFT.setChargedParticles(chargedParticlesContractMainnetAddress);
-
     // Mint a music NFT and get tokenId
     musicNFTContract = new ethers.Contract(
       process.env.MUSIC_NFT_CONTRACT,
-      nftAbi,
+      erc721ABI,
       provider
     );
     // const nftPrice = new ethers.BigNumber.from(
@@ -120,9 +139,9 @@ describe("Dropcase", async () => {
     });
 
     // Whitelist custom NFT
-    const owner = await ethers.getSigner(adminAddress);
+    const cpOwner = await ethers.getSigner(adminAddress);
     const whiteList = await ChargedSettingContract.connect(
-      owner
+      cpOwner
     ).enableNftContracts([deploymentAddress]);
     await whiteList.wait();
 

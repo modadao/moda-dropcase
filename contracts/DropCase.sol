@@ -25,11 +25,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interfaces/IChargedState.sol";
-import "../interfaces/IChargedSettings.sol";
-import "../interfaces/IChargedParticles.sol";
-import "../interfaces/IChargedManagers.sol";
-
 import "../interfaces/IDropCase.sol";
 import "../lib/RelayRecipient.sol";
 import "../lib/BlackholePrevention.sol";
@@ -37,11 +32,6 @@ import "../lib/BlackholePrevention.sol";
 contract DropCase is IDropCase, ERC721, Ownable, RelayRecipient, IERC721Receiver, BlackholePrevention {
   using Counters for Counters.Counter;
   uint256 public constant INITIAL_PRICE = 0 ether;
-
-  IChargedState internal _chargedState;
-  IChargedSettings internal _chargedSettings;
-  IChargedParticles internal _chargedParticles;
-  IChargedManagers internal _chargedManagers;
 
   uint256 internal _mintPrice;
 
@@ -52,11 +42,8 @@ contract DropCase is IDropCase, ERC721, Ownable, RelayRecipient, IERC721Receiver
   /***********************************|
   |          Initialization           |
   |__________________________________*/
-  constructor() public ERC721("Moda Dropcase NFT", "DropCase") {
+  constructor() public ERC721("Dropcase NFT", "DropCase") {
     _mintPrice = INITIAL_PRICE;
-    // address[] memory contracts = new address[](1);
-    // contracts[0] = address(this);
-    // _chargedSettings.enableNftContracts(contracts);
   }
 
   function onERC721Received(address, address, uint256, bytes calldata) external virtual override returns (bytes4) {
@@ -67,7 +54,7 @@ contract DropCase is IDropCase, ERC721, Ownable, RelayRecipient, IERC721Receiver
     return _tokenCreator[tokenId];
   }
 
-  function mintNft(address receiver, string memory tokenUri) external payable override returns (uint256 newTokenId) {
+  function mintNft(address receiver, string memory tokenUri) external payable override onlyOwner returns (uint256 newTokenId) {
     require(msg.value >= _mintPrice, "Not enough ETH sent: check price.");
     return _mintNft(msg.sender, receiver, tokenUri);
   }
@@ -107,36 +94,6 @@ contract DropCase is IDropCase, ERC721, Ownable, RelayRecipient, IERC721Receiver
     returns (bytes memory)
   {
     return BaseRelayRecipient._msgData();
-  }
-
-
-  /***********************************|
-  |          Only Admin/DAO           |
-  |__________________________________*/
-  /**
-  * @dev Setup the ChargedParticles Interface
-  */
-  function setChargedParticles(address chargedParticles) external virtual onlyOwner {
-    _chargedParticles = IChargedParticles(chargedParticles);
-    emit ChargedParticlesSet(chargedParticles);
-  }
-
-  /// @dev Setup the Charged-State Controller
-  function setChargedState(address stateController) external virtual onlyOwner {
-    _chargedState = IChargedState(stateController);
-    emit ChargedStateSet(stateController);
-  }
-
-  /// @dev Setup the Charged-Settings Controller
-  function setChargedSettings(address settings) external virtual onlyOwner {
-    _chargedSettings = IChargedSettings(settings);
-    emit ChargedSettingsSet(settings);
-  }
-
-  /// @dev Setup the Charged-Managers Controller
-  function setChargedManagerss(address managers) external virtual onlyOwner {
-    _chargedManagers = IChargedManagers(managers);
-    emit ChargedManagersSet(managers);
   }
 
   function setMintPrice(uint256 price) external onlyOwner {

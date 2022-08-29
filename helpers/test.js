@@ -11,7 +11,8 @@ const callAndReturn = async ({
   const tx = await contractInstance
     .connect(contractCaller)
     [contractMethod](...contractParams, { value: callValue });
-  await tx.wait();
+  const receipt = await tx.wait();
+  console.log(contractMethod, receipt.gasUsed);
   return returnValue;
 };
 module.exports = (network) => {

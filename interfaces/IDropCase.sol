@@ -25,10 +25,6 @@ pragma solidity >=0.6.12;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface IDropCase is IERC721 {
-  event ChargedStateSet(address indexed chargedState);
-  event ChargedSettingsSet(address indexed chargedSettings);
-  event ChargedParticlesSet(address indexed chargedParticles);
-  event ChargedManagersSet(address indexed chargedManagers);
   event NewMintPrice(uint256 price);
 
   /***********************************|
