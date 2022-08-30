@@ -271,37 +271,4 @@ describe("Dropcase", async () => {
     ).toNumber();
     expect(res2).to.be.equal(1);
   });
-
-  it("can successfully withdraw nft from dropcase to wallet", async () => {
-    await callAndReturn({
-      contractInstance: ChargedParticlesContract,
-      contractMethod: "covalentBond",
-      contractCaller: this.addr1,
-      contractParams: [
-        deploymentAddress,
-        dropCaseTokenId1,
-        "generic.B",
-        process.env.MUSIC_NFT_CONTRACT,
-        musicNFTTokenId,
-        1,
-      ],
-    });
-
-    const res = await callAndReturn({
-      contractInstance: ChargedParticlesContract,
-      contractMethod: "breakCovalentBond",
-      contractCaller: this.addr1,
-      contractParams: [
-        this.addr1.address,
-        deploymentAddress,
-        dropCaseTokenId1,
-        "generic.B",
-        process.env.MUSIC_NFT_CONTRACT,
-        musicNFTTokenId,
-        1,
-      ],
-    });
-
-    expect(res).to.be.equal(true);
-  });
 });
